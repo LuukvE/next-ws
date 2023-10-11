@@ -1,6 +1,6 @@
-import { Server } from 'node:http';
-import NextNodeServer from 'next/dist/server/next-server';
-import type { SocketHandler } from './ws';
+import { Server } from "node:http";
+import NextNodeServer from "next/dist/server/next-server";
+import type { SocketHandler } from "./ws";
 
 /**
  * Get the http.Server instance from the NextNodeServer.
@@ -9,12 +9,12 @@ import type { SocketHandler } from './ws';
  */
 export function getHttpServer(nextServer: NextNodeServer) {
   if (!nextServer || !(nextServer instanceof NextNodeServer))
-    throw new Error('Next WS is missing access to the NextNodeServer');
+    throw new Error("Next WS is missing access to the NextNodeServer");
 
   // @ts-expect-error - serverOptions is protected
   const httpServer = nextServer.serverOptions?.httpServer;
   if (!httpServer || !(httpServer instanceof Server))
-    throw new Error('Next WS is missing access to the http.Server');
+    throw new Error("Next WS is missing access to the http.Server");
 
   return httpServer;
 }
@@ -26,9 +26,9 @@ export function getHttpServer(nextServer: NextNodeServer) {
  * @returns The resolved page, or null if the page could not be resolved.
  */
 export function resolvePathname(nextServer: NextNodeServer, pathname: string) {
-  if (pathname.startsWith('/_next')) return null;
+  if (pathname.startsWith("/_next")) return null;
 
-  const pathParts = pathname.split('/');
+  const pathParts = pathname.split("/");
   const appRoutes = {
     // @ts-expect-error - appPathRoutes is protected
     ...nextServer.appPathRoutes,
@@ -37,28 +37,28 @@ export function resolvePathname(nextServer: NextNodeServer, pathname: string) {
   };
 
   for (const [key, [path]] of Object.entries(appRoutes)) {
-    const hasDynamic = key.includes('[') && key.includes(']');
+    const hasDynamic = key.includes("[") && key.includes("]");
 
     if (hasDynamic) {
-      const keyParts = key.split('/');
+      const keyParts = key.split("/");
       if (keyParts.length !== pathParts.length) continue;
 
       for (let i = 0; i < keyParts.length; i++) {
         const keyPart = keyParts[i];
         const pathPart = pathParts[i];
 
-        const isDynamic = keyPart.includes('[') && keyPart.includes(']');
+        const isDynamic = keyPart.includes("[") && keyPart.includes("]");
         if (isDynamic) keyParts[i] = pathPart;
         if (keyParts[i] !== pathParts[i]) break;
 
         if (i === keyParts.length - 1) {
-          if (!path?.endsWith('/route')) return null;
+          if (!path?.endsWith("/route")) return null;
           return path;
         }
       }
     } else {
       if (key !== pathname) continue;
-      if (!path?.endsWith('/route')) return null;
+      if (!path?.endsWith("/route")) return null;
       return path;
     }
   }
